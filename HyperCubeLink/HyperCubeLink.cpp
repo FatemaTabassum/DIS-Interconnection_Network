@@ -10,16 +10,22 @@
 #include <cmath>
 #include <algorithm>
 #include <queue>
+#include <vector>
+#include <string>
+
 
 #define SIZE 100000
+#define LINKSSIZE 65540
 
 using namespace std;
 
 bool color[SIZE];
 bool queueColor[SIZE];
-
 int totalNumberOfLink;
+
+vector<int> edges[LINKSSIZE];
 queue <int> nodesQueue;
+
 
 void reset() {
     for (int i = 0; i < SIZE; i++) {
@@ -27,6 +33,9 @@ void reset() {
     }
     for (int i = 0; i < SIZE; i++) {
         queueColor[i] = false;
+    }
+    for (int i = 0; i < LINKSSIZE; i++) {
+        edges[i].clear();
     }
 }
 
@@ -45,8 +54,26 @@ int getNodeWithHammingDistance(int nodeNum, int bitNum) {
     return nodeNum ^ (1<<bitNum);
 }
 
-void printLink(int node1, int node2) {
-    cout << "Link:  " << node1 << " -->  " << node2 << endl;
+string getBinaryRepresentation(int num, int dimensionOfHyperCube) {
+    string s = "";
+    //printf("num = %d\n", num);
+    for (int i = dimensionOfHyperCube-1; i > -1; i--) {
+        //printf("i = %d dimension = %d 1<<i = %d    1<<i & num = %d \n", i, dimension, 1<<i, 1<<i & num);
+        s += (1<<i & num)? "1": "0";
+    }
+    return s;
+}
+
+void printAllTheLinks(int dimensionOfHyperCube) {
+    int numberOfNodes = 2 << (dimensionOfHyperCube-1);
+    printf(" totoal nodes count %d\n",numberOfNodes);
+    for (int i = 0; i < numberOfNodes ; i++) {
+        cout<< i << "("<< getBinaryRepresentation(i,dimensionOfHyperCube) << ")" << ":" << " ";
+        for ( int j = 0; j < edges[i].size(); j++) {
+            cout<< edges[i][j] << "("<< getBinaryRepresentation(edges[i][j],dimensionOfHyperCube) << ")" << " ";
+        }
+        cout<<endl;
+    }
 }
 
 void bfsTraversal( int numberOfNodesInHypercube, int dimensionOfHypercube) {
@@ -64,7 +91,9 @@ void bfsTraversal( int numberOfNodesInHypercube, int dimensionOfHypercube) {
             int newNode = getNodeWithHammingDistance(rootNode, i);
             if (checkColorOfNode(newNode, color) == false) {
                 //totalNumberOfLink++;
-                printLink(rootNode, newNode);
+                edges[rootNode].push_back(newNode);
+                edges[newNode].push_back(rootNode);
+                //printf("%d ---> %d   %d ---> %d\n", rootNode, edges[rootNode].back(), newNode, edges[newNode].back());
                 if(checkColorOfNode(newNode, queueColor) == false){
                     nodesQueue.push(newNode);
                     setColorOfNode(newNode, queueColor);
@@ -90,6 +119,7 @@ int main(int argc, const char * argv[]) {
         int node = 0;
         nodesQueue.push(node);
         bfsTraversal(numberOfNodesInHypercube, dimensionOfHyperCube);
+        printAllTheLinks(dimensionOfHyperCube);
     }
     return 0;
 }
