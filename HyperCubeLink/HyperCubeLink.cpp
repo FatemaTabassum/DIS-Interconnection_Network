@@ -56,9 +56,7 @@ int getNodeWithHammingDistance(int nodeNum, int bitNum) {
 
 string getBinaryRepresentation(int num, int dimensionOfHyperCube) {
     string s = "";
-    //printf("num = %d\n", num);
     for (int i = dimensionOfHyperCube-1; i > -1; i--) {
-        //printf("i = %d dimension = %d 1<<i = %d    1<<i & num = %d \n", i, dimension, 1<<i, 1<<i & num);
         s += (1<<i & num)? "1": "0";
     }
     return s;
@@ -66,7 +64,6 @@ string getBinaryRepresentation(int num, int dimensionOfHyperCube) {
 
 void printAllTheLinks(int dimensionOfHyperCube) {
     int numberOfNodes = 2 << (dimensionOfHyperCube-1);
-    printf(" totoal nodes count %d\n",numberOfNodes);
     for (int i = 0; i < numberOfNodes ; i++) {
         cout<< i << "("<< getBinaryRepresentation(i,dimensionOfHyperCube) << ")" << ":" << " ";
         for ( int j = 0; j < edges[i].size(); j++) {
@@ -90,10 +87,8 @@ void bfsTraversal( int numberOfNodesInHypercube, int dimensionOfHypercube) {
         for (int i = 0; i < dimensionOfHypercube; i++) {
             int newNode = getNodeWithHammingDistance(rootNode, i);
             if (checkColorOfNode(newNode, color) == false) {
-                //totalNumberOfLink++;
                 edges[rootNode].push_back(newNode);
                 edges[newNode].push_back(rootNode);
-                //printf("%d ---> %d   %d ---> %d\n", rootNode, edges[rootNode].back(), newNode, edges[newNode].back());
                 if(checkColorOfNode(newNode, queueColor) == false){
                     nodesQueue.push(newNode);
                     setColorOfNode(newNode, queueColor);
@@ -105,21 +100,54 @@ void bfsTraversal( int numberOfNodesInHypercube, int dimensionOfHypercube) {
 
 int main(int argc, const char * argv[]) {
     
-    int dimensionOfHyperCube, numberOfNodesInHypercube = 0;
+    int dimensionOfHyperCube = 0, numberOfNodesInHypercube = 0;
     
     while (1) {
-        cout << "Enter the dimension of HyperCube. To end the program enter -1" << endl;
-        cin >> dimensionOfHyperCube;
-        if (dimensionOfHyperCube == -1){
-            break;
+//        cout << "Enter the dimension of HyperCube. To end the program enter -1" << endl;
+//        cin >> dimensionOfHyperCube;
+//        if (dimensionOfHyperCube == -1){
+//            break;
+//        }
+    
+    
+    cout << "Enter number of nodes" << endl;
+    cin>>numberOfNodesInHypercube;
+    if (totalNumberOfLink < 0 && totalNumberOfLink > 16) {
+        cout<< "Number of nodes must be less than 16" << endl;
+    } else {
+        if (numberOfNodesInHypercube != 0 && (numberOfNodesInHypercube & (numberOfNodesInHypercube - 1)) != 0 ) {
+            cout<<"Number of nodes must be power of 2"<<endl;
+        } else {
+            for (int i = 0; i < 18 ; i++) {
+                if ((numberOfNodesInHypercube & (1 << i)) > 0) {
+                    dimensionOfHyperCube = i;
+                    break;
+                }
+            }
+            totalNumberOfLink = 0;
+            reset();
+            int node = 0;
+            nodesQueue.push(node);
+            bfsTraversal(numberOfNodesInHypercube, dimensionOfHyperCube);
+            printAllTheLinks(dimensionOfHyperCube);
         }
-        totalNumberOfLink = 0;
-        reset();
-        numberOfNodesInHypercube = 2 << (dimensionOfHyperCube-1);
-        int node = 0;
-        nodesQueue.push(node);
-        bfsTraversal(numberOfNodesInHypercube, dimensionOfHyperCube);
-        printAllTheLinks(dimensionOfHyperCube);
     }
+}
+return 0;
+}
+
+
+/*
+Programming 2: Extend the program in assignment 1 to compute path(s) for (a) dimension order single path routing (lowest dimension first), and (b) all shortest path routing, with the following prototypes:
+int dim_order_routing(int src, int dst, int *path); /* return path length */
+//int allpath_routing(int src, int dst, int allpath[MAX_PATH][MAXZ_PATH_LEN]); /* return number of paths */
+
+int dim_order_routing(int src, int dst, int *path) {
     return 0;
 }
+
+//int allpath_routing(int src, int dst, int allpath[MAX_PATH][MAXZ_PATH_LEN]) {
+//    return 0;
+//}
+
+
