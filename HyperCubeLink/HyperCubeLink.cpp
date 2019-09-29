@@ -222,10 +222,14 @@ void perform_random_permutation (){
     if (numberOfNodesInHypercube == -1) {
         break;
     }
+    else if (numberOfNodesInHypercube != 0 && (numberOfNodesInHypercube & (numberOfNodesInHypercube - 1)) != 0 ) {
+        cout<<"Number of nodes must be power of 2"<<endl;
+        continue;
+    }
     reset();
+    srand(time(NULL));
     back_track(START_NODE);
     }
-        
 }
 
 int main(int argc, const char * argv[]) {
