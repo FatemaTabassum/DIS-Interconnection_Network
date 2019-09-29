@@ -14,7 +14,7 @@
 #include <string>
 
 
-#define SIZE 100000
+#define SIZE 65540
 #define LINKSSIZE 65540
 
 using namespace std;
@@ -22,9 +22,14 @@ using namespace std;
 bool color[SIZE];
 bool queueColor[SIZE];
 int totalNumberOfLink;
+int dimensionOfHyperCube = 0;
+int numberOfNodesInHypercube = 0;
+int pathCountForAllPathRouting = 0;
 
 vector<int> edges[LINKSSIZE];
+vector<int>pathVector;
 queue <int> nodesQueue;
+vector<bool> taken;
 
 
 void reset() {
@@ -37,6 +42,7 @@ void reset() {
     for (int i = 0; i < LINKSSIZE; i++) {
         edges[i].clear();
     }
+    pathVector.clear();
 }
 
 void setColorOfNode(int nodeNumber, bool colorArray[]) {
@@ -98,20 +104,75 @@ void bfsTraversal( int numberOfNodesInHypercube, int dimensionOfHypercube) {
     }
 }
 
+void dim_order_routing(int src, int dst) {
+    if ((src < 0 || src > (numberOfNodesInHypercube -1)) || (dst < 0 || src > (numberOfNodesInHypercube -1))) {
+        cout << "out of range" <<endl;
+    }
+    int current = src;
+    int pathLength = 0;
+    pathVector.push_back(src);
+    for (int i= 0; i < 17; i++) {
+        if (current == dst) {
+            break;
+        }
+        if ((current & 0x01<<i) != (dst & 0x01 << i)) {
+            current = current^(0x01 << i);
+            pathVector.push_back(current);
+            pathLength++;
+        }
+    }
+    cout<<"Path from "<< src << " to "<< dst << ":" <<" ";
+    for (int j = 0;j < pathVector.size(); j++) {
+        cout << pathVector[j] << "(" << getBinaryRepresentation(pathVector[j], dimensionOfHyperCube) << ")";
+        if (j == (pathVector.size() - 1)) {
+            cout << endl;
+        } else {
+            cout<<"->";
+        }
+    }
+    cout<< endl <<endl;
+    return;
+}
+
+void allpath_routing(int src, int dst, int idx) {
+    if (idx > dimensionOfHyperCube) {
+        return;
+    }
+    if (src == dst) {
+        pathCountForAllPathRouting++;
+        cout<<"Path "<< pathCountForAllPathRouting + 1 << " : ";
+        for (int j = 0; j < pathVector.size(); j++) {
+            cout << pathVector[j] << "(" << getBinaryRepresentation(pathVector[j], dimensionOfHyperCube)  << ")";
+            if ((pathVector.size() - 1) != j) {
+                cout << "-->";
+            }
+        }
+        cout<< endl;
+        return;
+    }
+    for (int i = 0; i < dimensionOfHyperCube; i++) {
+        if (taken[i] == false) {
+            if (((src & 1 << i) == (dst & 1 << i))) {
+                taken[i] = true;
+                idx++;
+                continue;
+            }
+            int current = src ^ (1 << i);
+            pathVector.push_back(current);
+            taken[i] = true;
+            allpath_routing(current, dst, idx + 1);
+            taken[i] = false;
+            pathVector.pop_back();
+        }
+    }
+    return;
+}
+
 int main(int argc, const char * argv[]) {
     
-    int dimensionOfHyperCube = 0, numberOfNodesInHypercube = 0;
-    
-    while (1) {
-//        cout << "Enter the dimension of HyperCube. To end the program enter -1" << endl;
-//        cin >> dimensionOfHyperCube;
-//        if (dimensionOfHyperCube == -1){
-//            break;
-//        }
-    
-    
+    int routingType;
     cout << "Enter number of nodes" << endl;
-    cin>>numberOfNodesInHypercube;
+    cin >> numberOfNodesInHypercube;
     if (totalNumberOfLink < 0 && totalNumberOfLink > 16) {
         cout<< "Number of nodes must be less than 16" << endl;
     } else {
@@ -130,24 +191,43 @@ int main(int argc, const char * argv[]) {
             nodesQueue.push(node);
             bfsTraversal(numberOfNodesInHypercube, dimensionOfHyperCube);
             printAllTheLinks(dimensionOfHyperCube);
+            cout << "For dimension order routing press 1, for all shortest path press 2" << endl;
+            cin >> routingType;
+            int src, dest;
+            while (1) {
+                cout<<"Enter src dest : ";
+                cin>> src >> dest;
+                pathCountForAllPathRouting = 0;
+                if (src == -1 || dest == -1) {
+                    break;
+                }
+                if (routingType == 1) {
+                    dim_order_routing(src, dest);
+                } else {
+                    for (int i = 0; i < dimensionOfHyperCube; i++) {
+                        taken.push_back(false);
+                    }
+                    pathVector.push_back(src);
+                    allpath_routing(src, dest, 0);
+                    cout << endl;
+                    pathVector.clear();
+                    taken.clear();
+                }
+            }
         }
     }
-}
 return 0;
 }
+
 
 
 /*
 Programming 2: Extend the program in assignment 1 to compute path(s) for (a) dimension order single path routing (lowest dimension first), and (b) all shortest path routing, with the following prototypes:
 int dim_order_routing(int src, int dst, int *path); /* return path length */
 //int allpath_routing(int src, int dst, int allpath[MAX_PATH][MAXZ_PATH_LEN]); /* return number of paths */
-
-int dim_order_routing(int src, int dst, int *path) {
-    return 0;
-}
-
 //int allpath_routing(int src, int dst, int allpath[MAX_PATH][MAXZ_PATH_LEN]) {
 //    return 0;
 //}
+
 
 
