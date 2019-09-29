@@ -12,6 +12,10 @@
 #include <queue>
 #include <vector>
 #include <string>
+#include <map>
+#include <iterator>
+#include <cstdlib>
+#include <ctime>
 
 
 #define SIZE 65540
@@ -25,6 +29,7 @@ int totalNumberOfLink;
 int dimensionOfHyperCube = 0;
 int numberOfNodesInHypercube = 0;
 int pathCountForAllPathRouting = 0;
+bool end_flag = false;
 
 vector<int> edges[LINKSSIZE];
 vector<int>pathVector;
@@ -33,16 +38,22 @@ vector<bool> taken;
 
 
 void reset() {
+    taken.clear();
     for (int i = 0; i < SIZE; i++) {
         color[i] = false;
     }
     for (int i = 0; i < SIZE; i++) {
         queueColor[i] = false;
     }
+    for (int i = 0; i < SIZE; i++) {
+        taken.push_back(false);
+        
+    }
     for (int i = 0; i < LINKSSIZE; i++) {
         edges[i].clear();
     }
     pathVector.clear();
+    end_flag = false;
 }
 
 void setColorOfNode(int nodeNumber, bool colorArray[]) {
@@ -168,7 +179,66 @@ void allpath_routing(int src, int dst, int idx) {
     return;
 }
 
+void back_track(int idx) {
+    if (end_flag == true) {
+        return;
+    }
+    else if (idx > numberOfNodesInHypercube) {
+        return;
+    }
+    else if (idx == numberOfNodesInHypercube) {
+        for (int j = 0; j < pathVector.size(); j++) {
+            cout << j << " " << pathVector[j] << endl;
+        }
+        cout<< endl;
+        end_flag = true;
+        return;
+    }
+        
+    //for (int i = 0; i < numberOfNodesInHypercube; i++) {
+    while (1) {
+        srand(time(NULL));
+        int randN = rand() % numberOfNodesInHypercube;
+        if (taken[randN] == false) {
+            if (idx != randN) {
+                pathVector.push_back(randN);
+                taken[randN] = true;
+                back_track(idx + 1);
+                if (end_flag == true) {
+                    return;
+                }
+                taken[randN] = false;
+                pathVector.pop_back();
+                break;
+            }
+        }
+    }
+    
+        }
+    //}
+
+void perform_random_permutation (){
+    while (1) {
+    cout << "Enter number of nodes" << endl;
+    cin >> numberOfNodesInHypercube;
+    if (numberOfNodesInHypercube == -1) {
+        break;
+    }
+    reset();
+//    srand(time(NULL));
+//    int randN = rand() % numberOfNodesInHypercube;
+//    taken[randN] = true;
+//    pathVector.push_back(randN);
+    back_track(0);
+    }
+        
+}
+
 int main(int argc, const char * argv[]) {
+    
+    // a program to generate a random permutation (try './genperm.x 8')
+    perform_random_permutation();
+    return 0;
     
     int routingType;
     cout << "Enter number of nodes" << endl;
