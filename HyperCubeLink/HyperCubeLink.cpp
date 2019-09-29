@@ -20,6 +20,7 @@
 
 #define SIZE 65540
 #define LINKSSIZE 65540
+#define START_NODE 0
 
 using namespace std;
 
@@ -195,9 +196,7 @@ void back_track(int idx) {
         return;
     }
         
-    //for (int i = 0; i < numberOfNodesInHypercube; i++) {
     while (1) {
-        srand(time(NULL));
         int randN = rand() % numberOfNodesInHypercube;
         if (taken[randN] == false) {
             if (idx != randN) {
@@ -214,8 +213,7 @@ void back_track(int idx) {
         }
     }
     
-        }
-    //}
+}
 
 void perform_random_permutation (){
     while (1) {
@@ -225,11 +223,7 @@ void perform_random_permutation (){
         break;
     }
     reset();
-//    srand(time(NULL));
-//    int randN = rand() % numberOfNodesInHypercube;
-//    taken[randN] = true;
-//    pathVector.push_back(randN);
-    back_track(0);
+    back_track(START_NODE);
     }
         
 }
