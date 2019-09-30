@@ -21,8 +21,20 @@
 #define SIZE 65540
 #define LINKSSIZE 65540
 #define START_NODE 0
+#define FLOW_RATE 1000
 
 using namespace std;
+
+struct node_desc {
+    int current;
+    int previous;
+};
+
+struct link_node_description {
+    int src;
+    int dest;
+    int count_usage = 0;
+};
 
 bool color[SIZE];
 bool queueColor[SIZE];
@@ -36,10 +48,13 @@ vector<int> edges[LINKSSIZE];
 vector<int>pathVector;
 queue <int> nodesQueue;
 vector<bool> taken;
-
+vector <vector<int>> shortest_path_vectors;
+int all_path_count[LINKSSIZE][35];
 
 void reset() {
-    taken.clear();
+    if (taken.size() > 0) {
+        taken.clear();
+    }
     for (int i = 0; i < SIZE; i++) {
         color[i] = false;
     }
@@ -48,13 +63,25 @@ void reset() {
     }
     for (int i = 0; i < SIZE; i++) {
         taken.push_back(false);
-        
     }
     for (int i = 0; i < LINKSSIZE; i++) {
         edges[i].clear();
     }
-    pathVector.clear();
-    end_flag = false;
+}
+
+void reset_for_bfsTraversal_to_find_path () {
+    if (taken.size() > 0) {
+        taken.clear();
+    }
+    for (int i = 0; i < SIZE; i++) {
+        color[i] = false;
+    }
+    for (int i = 0; i < SIZE; i++) {
+        queueColor[i] = false;
+    }
+    for (int i = 0; i < SIZE; i++) {
+        taken.push_back(false);
+    }
 }
 
 void setColorOfNode(int nodeNumber, bool colorArray[]) {
@@ -89,7 +116,10 @@ void printAllTheLinks(int dimensionOfHyperCube) {
         }
         cout<<endl;
     }
+    cout << endl << endl;
 }
+
+#pragma mark Print_All_Link_In_HyperLink
 
 void bfsTraversal( int numberOfNodesInHypercube, int dimensionOfHypercube) {
     while (1) {
@@ -101,7 +131,9 @@ void bfsTraversal( int numberOfNodesInHypercube, int dimensionOfHypercube) {
         if (checkColorOfNode(rootNode, color) == true) {
             continue;
         }
-        setColorOfNode(rootNode, color);
+        else {
+            setColorOfNode(rootNode, color);
+        }
         for (int i = 0; i < dimensionOfHypercube; i++) {
             int newNode = getNodeWithHammingDistance(rootNode, i);
             if (checkColorOfNode(newNode, color) == false) {
@@ -115,6 +147,8 @@ void bfsTraversal( int numberOfNodesInHypercube, int dimensionOfHypercube) {
         }
     }
 }
+
+#pragma mark routing
 
 void dim_order_routing(int src, int dst) {
     if ((src < 0 || src > (numberOfNodesInHypercube -1)) || (dst < 0 || src > (numberOfNodesInHypercube -1))) {
@@ -180,6 +214,8 @@ void allpath_routing(int src, int dst, int idx) {
     return;
 }
 
+#pragma mark Throughput
+
 void back_track(int idx) {
     if (end_flag == true) {
         return;
@@ -215,27 +251,183 @@ void back_track(int idx) {
     
 }
 
-void perform_random_permutation (){
+
+void backtrack_reset () {
+    end_flag = false;
+    taken.clear();
+    for (int i = 0; i < SIZE; i++) {
+        taken.push_back(false);
+    }
+}
+
+int linear_search(int search_node, vector<node_desc> each_edge_desc_vector) {
+    for (int i = 0; i < each_edge_desc_vector.size(); i++) {
+        if (each_edge_desc_vector[i].current == search_node) {
+            return i;
+        }
+    }
+    return -1;
+}
+
+vector<int> find_path(vector<node_desc> each_edge_desc_vector) {
+    vector<int> a_full_path;
+    node_desc now = each_edge_desc_vector.back();
+    while (now.previous != -1) {
+        a_full_path.push_back(now.current);
+        int index = linear_search(now.previous, each_edge_desc_vector);
+        now = each_edge_desc_vector[index];
+    }
+    a_full_path.push_back(now.current);
+    reverse(a_full_path.begin(), a_full_path.begin() + a_full_path.size());
+    return a_full_path;
+}
+
+void bfsTraversal_to_find_path(int src, int dest, int numberOfNodesInHypercube, int dimensionOfHyperCube) {
+    vector<node_desc> each_edge_desc_vector;
+    queue <node_desc> node_desc_queue;
+    node_desc src_node;
+    src_node.current = src;
+    src_node.previous = -1;
+    node_desc_queue.push(src_node);
     while (1) {
-    cout << "Enter number of nodes" << endl;
-    cin >> numberOfNodesInHypercube;
-    if (numberOfNodesInHypercube == -1) {
-        break;
+        if (node_desc_queue.empty() == true) {
+            break;
+        }
+        node_desc rootNode = node_desc_queue.front();
+        node_desc_queue.pop();
+        if (rootNode.current == dest) {
+            each_edge_desc_vector.push_back(rootNode);
+            vector<int> a_full_path = find_path(each_edge_desc_vector);
+            shortest_path_vectors.push_back(a_full_path);
+            break;
+        }
+        else if (checkColorOfNode(rootNode.current, color) == true) {
+            continue;
+        }
+        else {
+            each_edge_desc_vector.push_back(rootNode);
+            setColorOfNode(rootNode.current, color);
+        }
+        for (int i = 0; i < edges[rootNode.current].size(); i++) {
+            int now = edges[rootNode.current][i];
+            if (checkColorOfNode(now, color) == false && checkColorOfNode(now, queueColor) == false) {
+                node_desc new_node_desc;
+                new_node_desc.current = now;
+                new_node_desc.previous = rootNode.current;
+                node_desc_queue.push(new_node_desc);
+                setColorOfNode(new_node_desc.current, queueColor);
+            }
+        }
     }
-    else if (numberOfNodesInHypercube != 0 && (numberOfNodesInHypercube & (numberOfNodesInHypercube - 1)) != 0 ) {
-        cout<<"Number of nodes must be power of 2"<<endl;
-        continue;
-    }
+    return;
+}
+
+void save_all_paths() {
     reset();
+    int node = 0;
+    nodesQueue.push(node);
+    for (int i = 0; i < 18 ; i++) {
+        if ((numberOfNodesInHypercube & (1 << i)) > 0) {
+            dimensionOfHyperCube = i;
+            break;
+        }
+    }
+    bfsTraversal(numberOfNodesInHypercube, dimensionOfHyperCube);
+    printAllTheLinks(dimensionOfHyperCube);
+}
+
+void compute_throughput() {
+    save_all_paths();
+    
+    for (int i = 0; i < LINKSSIZE; i++) {
+        for (int j = 0; j < 32; j++) {
+            all_path_count[i][j] = 0;
+        }
+    }
+    for (int i = 0; i < shortest_path_vectors.size(); i++) {
+        shortest_path_vectors[i].clear();
+    }
+    shortest_path_vectors.clear();
+    for (int i = 0; i < pathVector.size(); i++) {
+        int src = i;
+        int dest = pathVector[i];
+        reset_for_bfsTraversal_to_find_path();
+        bfsTraversal_to_find_path(src, dest, numberOfNodesInHypercube, dimensionOfHyperCube);
+    }
+    
+    for (int i = 0; i < shortest_path_vectors.size() ; i++) {
+        vector<int> v = (vector<int> )shortest_path_vectors[i];
+        for ( int j = 0; j < v.size() - 1; j++) {
+            all_path_count[v[j]][v[j+1]]++;
+        }
+    }
+    
+    int total_src_count = pathVector.size();
+
+    for (int i = 0; i < total_src_count ; i++) {
+        for ( int j = 0; j < shortest_path_vectors[i].size(); j++) {
+            cout<< shortest_path_vectors[i][j] << "("<< getBinaryRepresentation(shortest_path_vectors[i][j],dimensionOfHyperCube) << ")" ;
+            if (j != (shortest_path_vectors[i].size() -1)) {
+                cout << "-->";
+            }
+        }
+        cout<<endl;
+    }
+    /// Aggregate Throughput ///
+    
+    int aggregate_througput = 0;
+    vector<int>path_vector_corresponding_thorughput;
+    for (int i = 0; i < pathVector.size(); i++) {
+        path_vector_corresponding_thorughput.push_back(FLOW_RATE);
+    }
+    
+    for (int i = 0; i < total_src_count ; i++) {
+        for ( int j = 0; j < shortest_path_vectors[i].size() - 1; j++) {
+            int  first_node = shortest_path_vectors[i][j];
+            int second_node = shortest_path_vectors[i][j+1];
+            path_vector_corresponding_thorughput[i] = min(path_vector_corresponding_thorughput[i], FLOW_RATE/all_path_count[first_node][second_node]);
+        }
+        aggregate_througput += path_vector_corresponding_thorughput[i];
+    }
+    cout << endl << "Aggregate throughput: " << aggregate_througput << "Mbps" << endl << endl;
+    
+    for (int i = 0; i < pathVector.size() ; i++) {
+        int src = i;
+        int dest = pathVector[i];
+        cout << "flow[" << i << "]" << ": " << src << "->" << dest << ", " << "rate" << " = " << path_vector_corresponding_thorughput[i] << "Mbps" <<endl;
+    }
+    cout << endl << endl;
+    
+}
+
+void perform_random_permutation () {
     srand(time(NULL));
+    backtrack_reset();
     back_track(START_NODE);
+}
+
+
+void perform_random_permutation_and_Thorughput () {
+    while (1) {
+        cout << "Enter number of nodes" << endl;
+        cin >> numberOfNodesInHypercube;
+        if (numberOfNodesInHypercube == -1) {
+            break;
+        }
+        else if (numberOfNodesInHypercube != 0 && (numberOfNodesInHypercube & (numberOfNodesInHypercube - 1)) != 0 ) {
+            cout<<"Number of nodes must be power of 2"<<endl;
+            continue;
+        }
+        perform_random_permutation();
+        compute_throughput();
+        pathVector.clear();
     }
 }
 
 int main(int argc, const char * argv[]) {
     
     // a program to generate a random permutation (try './genperm.x 8')
-    perform_random_permutation();
+    perform_random_permutation_and_Thorughput();
     return 0;
     
     int routingType;
