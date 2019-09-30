@@ -216,49 +216,49 @@ void allpath_routing(int src, int dst, int idx) {
 
 #pragma mark Throughput
 
-void back_track(int idx) {
-    if (end_flag == true) {
-        return;
-    }
-    else if (idx > numberOfNodesInHypercube) {
-        return;
-    }
-    else if (idx == numberOfNodesInHypercube) {
-        for (int j = 0; j < pathVector.size(); j++) {
-            cout << j << " " << pathVector[j] << endl;
-        }
-        cout<< endl;
-        end_flag = true;
-        return;
-    }
-        
-    while (1) {
-        int randN = rand() % numberOfNodesInHypercube;
-        if (taken[randN] == false) {
-            if (idx != randN) {
-                pathVector.push_back(randN);
-                taken[randN] = true;
-                back_track(idx + 1);
-                if (end_flag == true) {
-                    return;
-                }
-                taken[randN] = false;
-                pathVector.pop_back();
-                break;
-            }
-        }
-    }
-    
-}
-
-
-void backtrack_reset () {
-    end_flag = false;
-    taken.clear();
-    for (int i = 0; i < SIZE; i++) {
-        taken.push_back(false);
-    }
-}
+//void back_track(int idx) {
+//    if (end_flag == true) {
+//        return;
+//    }
+//    else if (idx > numberOfNodesInHypercube) {
+//        return;
+//    }
+//    else if (idx == numberOfNodesInHypercube) {
+//        for (int j = 0; j < pathVector.size(); j++) {
+//            cout << j << " " << pathVector[j] << endl;
+//        }
+//        cout<< endl;
+//        end_flag = true;
+//        return;
+//    }
+//
+//    while (1) {
+//        int randN = rand() % numberOfNodesInHypercube;
+//        if (taken[randN] == false) {
+//            if (idx != randN) {
+//                pathVector.push_back(randN);
+//                taken[randN] = true;
+//                back_track(idx + 1);
+//                if (end_flag == true) {
+//                    return;
+//                }
+//                taken[randN] = false;
+//                pathVector.pop_back();
+//                break;
+//            }
+//        }
+//    }
+//
+//}
+//
+//
+//void backtrack_reset () {
+//    end_flag = false;
+//    taken.clear();
+//    for (int i = 0; i < SIZE; i++) {
+//        taken.push_back(false);
+//    }
+//}
 
 int linear_search(int search_node, vector<node_desc> each_edge_desc_vector) {
     for (int i = 0; i < each_edge_desc_vector.size(); i++) {
@@ -400,10 +400,40 @@ void compute_throughput() {
     
 }
 
+int get_a_random_num_from (vector<int> & v) {
+    int n = v.size();
+    int index = rand() % n;
+    int num = v[index];
+    swap(v[index], v[n - 1]);
+    v.pop_back();
+    return num;
+}
+
 void perform_random_permutation () {
+    
+    bool wrong_permutation = false;
+    vector<int> numbers_to_permute_randomly;
     srand(time(NULL));
-    backtrack_reset();
-    back_track(START_NODE);
+    while (1) {
+        for (int i = 0; i < numberOfNodesInHypercube; i++) {
+            numbers_to_permute_randomly.push_back(i);
+        }
+        while (numbers_to_permute_randomly.size() > 0) {
+            int num = get_a_random_num_from(numbers_to_permute_randomly);
+            pathVector.push_back(num);
+        }
+        for (int i = 0; i < pathVector.size(); i++) {
+            if (i == pathVector[i]) {
+                wrong_permutation = true;
+                pathVector.clear();
+                break;
+            }
+        }
+        if (wrong_permutation == false) {
+            break;
+        }
+        wrong_permutation = false;
+    }
 }
 
 
